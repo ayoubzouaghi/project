@@ -13,11 +13,12 @@ class AdminRegisterRequest extends FormRequest
      */
     public function authorize()
     {
-        if ($this->user()->hasRole('admin')) {
+        /* if ($this->user()->hasRole('admin')) {
             return true;
         } else {
             return false;
-        }
+        } */
+        return true;
     }
 
     /**

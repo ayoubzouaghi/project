@@ -3,11 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\AdminRegisterRequest;
+use App\Http\Requests\AdminRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\UserRequest;
+use App\Mail\CreateAcount;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class UserController extends Controller
 {
@@ -64,18 +68,43 @@ class UserController extends Controller
         } else {
             $user = User::create($request->only('email'));
             $user->assignRole('user');
+            Mail::to($request->user())
+                ->send(new CreateAcount($user));
             return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
         }
     }
 
-    public function editUser(Request $request, $id)
+    public function editUser(UserRequest $request, $id)
     {
         $user = User::find($id);
         if ($user) {
-            $user->update($request->only('first_name', 'last_name'));
+            $user->update($request->only('first_name'));
             return response()->json((['message' => 'User updated', 'success' => 1, 'status' => 200, 'user' => $user]));
         } else {
             return response()->json(['message' => 'erreur! user not found', 'success' => -1, 'status' => 400]);
+        }
+    }
+
+    public function deleteUser(AdminRequest $request, $id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json(['message' => 'erreur! user not found', 'success' => -1, 'status' => 400]);
+        } else {
+            $user->delete();
+            return response()->json((['message' => 'User deleted', 'success' => 1, 'status' => 200,]));
+        }
+    }
+
+    public function AdminUpdateUser(adminRequest $request, $id)
+    {
+        $user = User::find($id);
+        if ($user) {
+            $user->update($request->only('email'));
+
+            return response()->json(['message'  => "user updated", 'success' => 1, 'status' => 200, 'user' => $user]);
+        } else {
+            return response()->json(['message'  => "user not found", 'success' => -1, 'status' => 400]);
         }
     }
 }

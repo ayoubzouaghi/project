@@ -18,3 +18,5 @@ use App\Http\Controllers\UserController;
 Route::post('add',   [UserController::class, 'addUser']);
 Route::post('login', [UserController::class, 'Login']);
 Route::put('edit/{id}', [UserController::class, 'editUser'])->middleware('auth:api');;
+Route::delete('delete/{id}', [UserController::class, 'deleteUser'])->middleware('auth:api');
+Route::put('edit-user/{id}', [UserController::class, 'AdminUpdateUser'])->middleware('auth:api');;
