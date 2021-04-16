@@ -12,6 +12,10 @@ use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
+use App\Http\Resources\UserCollection;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Notification;
+
 
 class UserController extends Controller
 {
@@ -66,14 +70,40 @@ class UserController extends Controller
         if ($user) {
             return response()->json(['message'  => "Sorry! this email is already registered", 'success' => -1, 'status' => 400, 'user' => $user]);
         } else {
-            $user = User::create($request->only('email'));
+            $input = array(
+                'email'          => $request->email,
+                'register_token' => md5(uniqid(rand(), true)),
+            );
+            $user = User::create($input);
             $user->assignRole('user');
-            Mail::to($request->user())
-                ->send(new CreateAcount($user));
+            /* Mail::to($request->user())
+                ->send(new CreateAcount($user)); */
+            Notification::send($user, new \App\Notifications\CreateAcount($user));
+
             return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
         }
     }
+    public function UserRegister(Request $request)
+    {
 
+        $user  = User::where('register_token', $request->token)->first();
+        //check insert of token
+        if ($request->token === null) {
+            return response()->json(['message'  => "something went wrong", 'success' => -1, 'status' => 400]);
+        } else {
+            if (is_null($user)) {
+                return response()->json(['message'  => "something went wrong", 'success' => -1, 'status' => 400]);
+            } else {
+                // create and return
+                $user->update($request->only('first_name', 'last_name', 'password'));
+                $user->fill(['password' => bcrypt($request->password)]);
+                $user->fill(['register_token' => null]);
+                $user->save();
+                $user->assignRole('user');
+                return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
+            }
+        }
+    }
     public function editUser(UserRequest $request, $id)
     {
         $user = User::find($id);
@@ -99,12 +129,47 @@ class UserController extends Controller
     public function AdminUpdateUser(adminRequest $request, $id)
     {
         $user = User::find($id);
+        $client = User::where('email', $request->email)->first();
         if ($user) {
+            if ($client) {
+                return response()->json(['message' => 'email exist', 'success' => -1, 'status' => 400]);
+            }
             $user->update($request->only('email'));
-
             return response()->json(['message'  => "user updated", 'success' => 1, 'status' => 200, 'user' => $user]);
         } else {
             return response()->json(['message'  => "user not found", 'success' => -1, 'status' => 400]);
         }
+    }
+    public function index()
+    {
+        return response()->json(['message' => "All Users", 'success' => 1, 'status' => 200, 'users' => new UserCollection(User::all())]);
+    }
+
+
+    public function UpdateProfilImage(Request $request)
+    {
+
+        $user = User::find(Auth::id());
+
+
+        $base64_str = preg_replace('/^data:image\/\w+;base64,/', '', $request->image);
+
+        $image = base64_decode($base64_str);
+        $type = explode(';', $request->image)[0];
+        $type = explode('/', $type)[1]; // png or jpg etc
+        $alea = time();
+        $url = public_path('/images/') . $alea . $user->id . '.' . $type;
+        file_put_contents($url, $image);
+        $user->image = $alea . $user->id . '.' . $type;
+        $user->save();
+        return response()->json(['message' => "Profile image changed successfully", 'succes' => 1, 'status' => 200]);
+    }
+
+    public function GetProfilImage(Request $request)
+    {
+        $user = Auth::user();
+        $image = $user->image;
+
+        return response()->json(['message' => "Profil Image", 'success' => 1, 'status' => 200, 'image' => $image]);
     }
 }

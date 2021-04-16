@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use app\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
@@ -16,9 +17,9 @@ class CreateAcount extends Mailable
      *
      * @return void
      */
-    public function __construct($user)
+    public function __construct(User $user)
     {
-        $this->$user->$user;
+        $this->user = $user;
     }
 
     /**

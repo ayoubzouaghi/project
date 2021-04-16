@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class AdminRegisterRequest extends FormRequest
+class ProductRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -13,11 +13,6 @@ class AdminRegisterRequest extends FormRequest
      */
     public function authorize()
     {
-        /*    if ($this->user()->hasRole('admin')) {
-            return true;
-        } else {
-            return false;
-        } */
         return true;
     }
 
@@ -28,6 +23,10 @@ class AdminRegisterRequest extends FormRequest
      */
     public function rules()
     {
-        return [];
+        return [
+            'name' => 'required',
+            'price' => 'required',
+            'color' => 'required',
+        ];
     }
 }

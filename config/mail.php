@@ -32,6 +32,9 @@ return [
     |            "postmark", "log", "array"
     |
     */
+    'host' => env('MAIL_HOST', 'smtp.mailtrap.io'),
+    'port' => env('MAIL_PORT', 2525),
+
 
     'mailers' => [
         'smtp' => [
@@ -85,7 +88,7 @@ return [
 
     'from' => [
         'address' => env('MAIL_FROM_ADDRESS', 'admin@gmail.com'),
-        'name' => env('MAIL_FROM_NAME', 'Admin'),
+        'name' => env('MAIL_FROM_NAME', 'admin'),
     ],
 
     /*
