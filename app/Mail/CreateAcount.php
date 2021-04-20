@@ -30,6 +30,10 @@ class CreateAcount extends Mailable
     public function build()
     {
         return $this->view('emails.mail')
-            ->subject('Complete your registration');
+            ->subject('Complete your registration')
+            ->with([
+                'email' => $this->user->email,
+
+            ]);
     }
 }

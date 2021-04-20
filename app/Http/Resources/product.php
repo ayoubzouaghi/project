@@ -28,6 +28,7 @@ class product extends JsonResource
             'name'           => $this->name,
             'price'          => $this->price,
             'color'          => $this->color,
+            'image'          => $this->image,
             'user'           => new ResourceProduct($this->user->find($this->user_id)),
         ];
     }

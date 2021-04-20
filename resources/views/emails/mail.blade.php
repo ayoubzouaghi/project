@@ -8,8 +8,7 @@
 <body>
     <h2>Contunier</h2>
     <ul>
-        <li><strong>Nom</strong> : {{ $user }}</li>
-        <li><strong>Email</strong> : {{ $user}}</li>
+        <li><strong>Nom</strong> : {{ $email }}</li>
     </ul>
 </body>
 

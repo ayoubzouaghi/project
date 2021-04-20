@@ -46,8 +46,8 @@ class CreateAcount extends Notification
      */
     public function toMail($notifiable)
     {
-        $register_token_url = $this->user->register_token;
-        $url = url(env('front_url')) . '?token=' . $register_token_url;
+        $register_token = $this->user->register_token;
+        $url = url('http://localhost:4200/auth/register') . '?token=' . $register_token;
 
         return (new MailMessage)
             ->subject(Lang::get('Create account Notification'))

@@ -13,12 +13,7 @@ class AdminRegisterRequest extends FormRequest
      */
     public function authorize()
     {
-        /*    if ($this->user()->hasRole('admin')) {
-            return true;
-        } else {
-            return false;
-        } */
-        return true;
+        return  $this->user()->hasRole('admin');
     }
 
     /**
@@ -28,6 +23,8 @@ class AdminRegisterRequest extends FormRequest
      */
     public function rules()
     {
-        return [];
+        return [
+            'email' => 'required|email'
+        ];
     }
 }

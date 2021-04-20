@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\AdminRegisterRequest;
 use App\Http\Requests\AdminRequest;
 use App\Http\Requests\LoginRequest;
+use App\Http\Requests\PasswordRequest;
 use App\Http\Requests\UserRequest;
 use App\Mail\CreateAcount;
 use Illuminate\Http\Request;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Http\Resources\UserCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
+use App\Http\Resources\user as ResourcesUser;
 
 
 class UserController extends Controller
@@ -24,7 +26,7 @@ class UserController extends Controller
     public function __construct()
     {
 
-        $this->client = DB::table('oauth_clients')->where('name', env("APP_NAME") . 'Laravel Password Grant Client')->first();
+        $this->client = DB::table('oauth_clients')->where('name', 'Laravel Password Grant Client')->first();
     }
 
     public function Login(LoginRequest $request)
@@ -56,7 +58,7 @@ class UserController extends Controller
                 }
                 $token = json_decode((string) $response->getBody(), true);
                 if ($token) {
-                    return response()->json(['message'  => "your are welcome", 'success' => 1, 'status' => 200, 'token' => $token, 'role' => $role]);
+                    return response()->json(['message'  => "your are welcome", 'success' => 1, 'status' => 200, 'token' => $token, 'role' => $role, 'user' => $user]);
                 } else {
                     return response()->json(['message'  => "Sorry ! something went wrong", 'success' => -1, 'status' => 400]);
                 }
@@ -70,45 +72,34 @@ class UserController extends Controller
         if ($user) {
             return response()->json(['message'  => "Sorry! this email is already registered", 'success' => -1, 'status' => 400, 'user' => $user]);
         } else {
-            $input = array(
+
+            $user = User::create([
                 'email'          => $request->email,
                 'register_token' => md5(uniqid(rand(), true)),
-            );
-            $user = User::create($input);
+            ]);
             $user->assignRole('user');
-            /* Mail::to($request->user())
-                ->send(new CreateAcount($user)); */
-            Notification::send($user, new \App\Notifications\CreateAcount($user));
+            Mail::to($user->email)
+                ->send(new CreateAcount($user));
 
             return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
         }
     }
-    public function UserRegister(Request $request)
+    public function UserRegister(UserRequest $request)
     {
-
         $user  = User::where('register_token', $request->token)->first();
-        //check insert of token
-        if ($request->token === null) {
-            return response()->json(['message'  => "something went wrong", 'success' => -1, 'status' => 400]);
+        if ($user) {
+            $user->update(['first_name' => $request->first_name, 'last_name' => $request->last_name, 'password' => bcrypt($request->password), 'register_token' => null]);
+            $user->assignRole('user');
+            return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
         } else {
-            if (is_null($user)) {
-                return response()->json(['message'  => "something went wrong", 'success' => -1, 'status' => 400]);
-            } else {
-                // create and return
-                $user->update($request->only('first_name', 'last_name', 'password'));
-                $user->fill(['password' => bcrypt($request->password)]);
-                $user->fill(['register_token' => null]);
-                $user->save();
-                $user->assignRole('user');
-                return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
-            }
+            return response()->json(['message'  => "user", 'success' => -1, 'status' => 400]);
         }
     }
     public function editUser(UserRequest $request, $id)
     {
         $user = User::find($id);
         if ($user) {
-            $user->update($request->only('first_name'));
+            $user->update($request->only('first_name', 'last_name'));
             return response()->json((['message' => 'User updated', 'success' => 1, 'status' => 200, 'user' => $user]));
         } else {
             return response()->json(['message' => 'erreur! user not found', 'success' => -1, 'status' => 400]);
@@ -129,9 +120,8 @@ class UserController extends Controller
     public function AdminUpdateUser(adminRequest $request, $id)
     {
         $user = User::find($id);
-        $client = User::where('email', $request->email)->first();
         if ($user) {
-            if ($client) {
+            if (User::where('email', $request->email)->exists()) {
                 return response()->json(['message' => 'email exist', 'success' => -1, 'status' => 400]);
             }
             $user->update($request->only('email'));
@@ -169,7 +159,42 @@ class UserController extends Controller
     {
         $user = Auth::user();
         $image = $user->image;
-
         return response()->json(['message' => "Profil Image", 'success' => 1, 'status' => 200, 'image' => $image]);
+    }
+    public function show(Request $request)
+    {
+        $user = $request->user();
+
+
+        $userResources = new ResourcesUser($user);
+        return response()->json(['message'  => "user details", 'success' => 1, 'status' => 200, 'user' => $userResources]);
+    }
+    public function UserLogout()
+    {
+        auth()->user()->token()->revoke();
+        return response()->json(['message'  => "GoodBye", 'success' => 1, 'status' => 200]);
+    }
+    public function VerifToken(UserRequest $request)
+    {
+        $user  = User::where('register_token', $request->token)->first();
+        if ($user) {
+            return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
+        } else {
+            return response()->json(['message' => "Token expired", 'success' => -1, 'status' => 400]);
+        }
+    }
+    public function ChangePassword(Request $request)
+    {
+        $user = User::find(Auth::id());
+        if (Hash::check($request->password, $user->password)) {
+            if ($request->new_password === $request->c_new_password) {
+                $user->password = Hash::make($request->new_password);
+                $user->update();
+                return response()->json(['message' => "password updated", 'success' => 1, 'status' => 200]);
+            } else
+                return response()->json(['message' => "new and confirm new password are wrong", 'success' => -1, 'status' => 400]);
+        } else {
+            return response()->json(['message' => "old password is wrong", 'success' => -1, 'status' => 400]);
+        }
     }
 }
