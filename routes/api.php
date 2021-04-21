@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ResetPasswordController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
@@ -36,3 +38,6 @@ Route::group(['prefix' => 'product'], function () {
     Route::delete('delete/{id}', [ProductController::class, 'deleteProduct'])->middleware('auth:api');
     Route::get('all', [ProductController::class, 'getAllProduct'])->middleware('auth:api');
 });
+
+Route::post('forget', [ForgotPasswordController::class, 'postEmail']);
+Route::post('reset', [ResetPasswordController::class, 'updatePassword']);
