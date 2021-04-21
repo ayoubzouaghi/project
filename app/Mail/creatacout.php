@@ -2,13 +2,12 @@
 
 namespace App\Mail;
 
-use app\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class CreateAcount extends Mailable
+class creatacout extends Mailable
 {
     use Queueable, SerializesModels;
     public $user;
@@ -17,7 +16,7 @@ class CreateAcount extends Mailable
      *
      * @return void
      */
-    public function __construct(User $user)
+    public function __construct($user)
     {
         $this->user = $user;
     }
@@ -29,12 +28,10 @@ class CreateAcount extends Mailable
      */
     public function build()
     {
-        return $this->view('emails.mail')
-            ->subject('Complete your registration')
-            ->with([
-                'register_token' => $this->user->register_token,
-                'email' => $this->user->email,
-                'url' => 'http://localhost:4200/auth/register' . '?token=' . $this->user->register_token,
-            ]);
+        return $this->markdown('emails.create.acount', [
+            'register_token' => $this->user->register_token,
+            'email' => $this->user->email,
+            'url' => url('http://localhost:4200/auth/register') . '?token=' . $this->user->register_token,
+        ]);
     }
 }

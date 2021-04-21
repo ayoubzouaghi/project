@@ -17,7 +17,7 @@ use App\Http\Resources\UserCollection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Notification;
 use App\Http\Resources\user as ResourcesUser;
-
+use App\Mail\creatacout;
 
 class UserController extends Controller
 {
@@ -79,7 +79,7 @@ class UserController extends Controller
             ]);
             $user->assignRole('user');
             Mail::to($user->email)
-                ->send(new CreateAcount($user));
+                ->send(new creatacout($user));
 
             return response()->json(['message' => "You have registered successfully", 'success' => 1, 'status' => 200]);
         }
