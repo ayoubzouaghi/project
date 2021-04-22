@@ -33,10 +33,11 @@ Route::group(['prefix' => 'product'], function () {
     Route::get('image/{id}', [ProductController::class, 'GetProductImage'])->middleware(('auth:api'));
     Route::post('add',   [ProductController::class, 'create'])->middleware('auth:api');
     Route::get('show/{id}',   [ProductController::class, 'show'])->middleware('auth:api');
-    Route::get('user/product/{id}',   [ProductController::class, 'UserProduct'])->middleware('auth:api');
+    Route::get('user/products', [ProductController::class, 'UserProduct'])->middleware('auth:api');
     Route::put('edit/{id}', [ProductController::class, 'update'])->middleware('auth:api');
     Route::delete('delete/{id}', [ProductController::class, 'deleteProduct'])->middleware('auth:api');
     Route::get('all', [ProductController::class, 'getAllProduct'])->middleware('auth:api');
+    Route::delete('user/delete/{id}', [ProductController::class, 'userDeleteProduct'])->middleware('auth:api');
 });
 
 Route::post('forget', [ForgotPasswordController::class, 'postEmail']);
