@@ -163,10 +163,8 @@ class UserController extends Controller
     }
     public function show(Request $request)
     {
-        $user = $request->user();
+        $userResources = new ResourcesUser($request->user());
 
-
-        $userResources = new ResourcesUser($user);
         return response()->json(['message'  => "user details", 'success' => 1, 'status' => 200, 'user' => $userResources]);
     }
     public function UserLogout()
