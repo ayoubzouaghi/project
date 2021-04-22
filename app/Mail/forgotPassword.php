@@ -29,9 +29,9 @@ class forgotPassword extends Mailable
     public function build()
     {
         return $this->markdown('emails.forgetpassword', [
-            'token' => $this->reset->token,
-            'email' => $this->reset->email,
-            'url' => url('http://localhost:4200/auth/reset-password') . '?token=' . $this->reset->token,
+            'token' => $this->reset['token'],
+            'email' => $this->reset['email'],
+            'url' => url('http://localhost:4200/auth/reset-password') . '?token=' . $this->reset['token'],
 
         ]);
     }
